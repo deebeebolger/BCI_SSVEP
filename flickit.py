@@ -5,6 +5,8 @@ from numpy import mean
 import time
 import os
 import sys
+import pyglet
+from screeninfo import get_monitors
 
 pygame.init()
 pygame.font.init()
@@ -73,15 +75,18 @@ class Flick:
         print('Hi again Dee')
         pygame.init()
         print(pygame.get_init())
-        self.integral = 0.
+        self.integral = 0
         self.prev_error = 0
         self.Kp, self.Ki, self.Kd = (1.4, 1.4, 0.05)
         _freq_array = []
         timer_event = USEREVENT + 1
         self._set_window_position()
         if duration != 0:
-            window = pygame.display.set_mode((1920, 1080), 0)
-            self.board_pos = (1920/2 - self.win_x/2, 1080/2 - self.win_y/2)
+            for m in get_monitors():
+                print(str(m))
+            d_x, d_y = (m.width, m.height)
+            window = pygame.display.set_mode((d_x, d_y), 0)
+            self.board_pos = (d_x/2 - self.win_x/2, 1080/2 - self.win_y/2)
             pygame.time.set_timer(timer_event, int(duration)*1000)
         else:
             window = pygame.display.set_mode((self.win_x, self.win_y), 0)

@@ -99,7 +99,10 @@ def begin_experiment_1(freq, trials=5):
 
 
 def begin_experiment_2(str_list):
-    display_x, display_y = get_display_resolution()
+    #display_x, display_y = get_display_resolution()
+    for m in get_monitors():
+        print(str(m))
+    display_x, display_y = (m.width, m.height)
     display_x, display_y = (2 * display_x, 2 * display_y)
     os.environ['SDL_VIDEO_CENTERED'] = '1'
     window = pygame.display.set_mode((display_x, display_y), pygame.NOFRAME, 32)
