@@ -12,8 +12,6 @@ import numpy as np
 from preprocess import preprocess_recordings
 from subprocess import Popen
 
-
-
 pygame.init()
 
 def time_str():
@@ -50,17 +48,27 @@ def render_waiting_screen(text_string=None, time_black = 0.):
         if text_string:
             window.blit(textsurface2, text_rect2)
     pygame.display.update()
-    while True:
+    busy = True
+    while busy:
         for event in pygame.event.get():
             if event.type == QUIT:
                 pygame.quit()
                 sys.exit()
+                busy = False
             if event.type == KEYDOWN:
                 if event.key == K_ESCAPE:
                     exit()
-                else:
-                    pygame.quit()
+                    busy = False
                     return False
+                elif event.key == K_SPACE:
+                    press_string1 = ""
+                    textsurface_new = myfont.render(press_string1, False, (0, 0, 0))
+                    window.fill((0, 0, 0))
+                    window.blit(textsurface_new, text_rect1)
+                    pygame.quit()
+                    busy = False
+                    return False
+
             if not (time_black > 0.):
                 window.blit(textsurface1, text_rect1)
                 if text_string:
@@ -68,7 +76,10 @@ def render_waiting_screen(text_string=None, time_black = 0.):
             else:
                 if event.type == timer_event:
                     pygame.quit()
+
                     return False
+            if busy == False:
+                break
             pygame.display.update()
 
 
@@ -79,7 +90,7 @@ def begin_experiment_1(freq, trials=5):
     render_waiting_screen("Welcome to this experiment")
     render_waiting_screen("The experiment will start now... there will be breaks between the flickering tiles!")
     recorder = RecordData(250., 20.)
-    render_waiting_screen(text_string=None, time_black=5.)
+    render_waiting_screen(text_string=None, time_black=0.1)
     recorder.start_recording()
 
     for i in range(0, int(trials)):
@@ -87,7 +98,7 @@ def begin_experiment_1(freq, trials=5):
         recorder.add_trial(int(freq))
         Flick(float(freq)).flicker(15.)
         recorder.add_trial(0.)
-        render_waiting_screen(text_string=None, time_black=5.)
+        render_waiting_screen(text_string=None, time_black=1.)
 
     filename = "REC/%s_freq_%s.mat" % (time_str(), freq)
     recorder.stop_recording_and_dump(filename)

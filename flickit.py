@@ -22,7 +22,7 @@ class Flick:
         self.freq = freq
         self.x = int(x)
         self.y = int(y)
-        self.win_x, self.win_y = (1600, 1200)     # Size of flicker window
+        self.win_x, self.win_y = (600, 800)     # Size of flicker window
         self.board_pos = (0, 0)
 
 
@@ -52,14 +52,18 @@ class Flick:
     def _set_window_position(self):
         if (self.x + self.y > 0):
             if self.x > 0:
+                print("x is", self.x)
                 pos_x = self.x - self.win_x/2
+                print("pos x is", pos_x)
             else:
                 pos_x = self.x
+                print("pos x is", pos_x)
+
             if self.y > 0:
                 pos_y = self.y - self.win_y/2
             else:
                 pos_y = self.y
-            os.environ['SDL_VIDEO_CENTERED'] = '0'
+            os.environ['SDL_VIDEO_CENTERED'] = '1'
             os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % (pos_x, pos_y)
         else:
             os.environ['SDL_VIDEO_CENTERED'] = '1'
@@ -86,7 +90,7 @@ class Flick:
                 print(str(m))
             d_x, d_y = (m.width, m.height)
             window = pygame.display.set_mode((d_x, d_y), 0)
-            self.board_pos = (d_x/2 - self.win_x/2, 1080/2 - self.win_y/2)
+            self.board_pos = (d_x/2 - self.win_x/2, d_y/2 - self.win_y/2)
             pygame.time.set_timer(timer_event, int(duration)*1000)
         else:
             window = pygame.display.set_mode((self.win_x, self.win_y), 0)
