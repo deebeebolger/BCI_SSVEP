@@ -8,10 +8,12 @@ import sys
 import pyglet
 from screeninfo import get_monitors
 
+import coloredcircle
+
 pygame.init()
 pygame.font.init()
 
-VERBOSE = False
+VERBOSE = True
 
 
 class Flick:
@@ -24,7 +26,6 @@ class Flick:
         self.y = int(y)
         self.win_x, self.win_y = (600, 800)     # Size of flicker window
         self.board_pos = (0, 0)
-
 
         self.IMAGES = [
                   checkerboard.create(0),
@@ -100,6 +101,7 @@ class Flick:
         clock = pygame.time.Clock()
         start = clock.tick()
         period = 1./(self.freq)
+
         while True:
             for event in pygame.event.get():
                 if event.type == QUIT:
@@ -120,4 +122,9 @@ class Flick:
             window.blit(self.IMAGES[1], self.board_pos)
             pygame.display.update()
             time.sleep(period)
-            period = 1./self._freq_controller(clock, _freq_array)
+            period = 1. / self._freq_controller(clock, _freq_array)
+
+            #period = 1. / self._freq_controller(clock, _freq_array)
+            #period = 1. / self._freq_controller(clock, _freq_array)
+
+        pygame.draw.circle()

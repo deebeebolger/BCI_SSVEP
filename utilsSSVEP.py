@@ -37,13 +37,13 @@ def render_waiting_screen(text_string=None, time_black = 0.):
         pygame.time.set_timer(timer_event, int(time_black)*1000)
     else:
         myfont = pygame.font.SysFont("arial", 50)
-        press_string = "Please press the Any-Key to continue..."
+        press_string = "Please press the Space Bar to continue..."
         textsurface1 = myfont.render(press_string, False, (0, 0, 0))
         text_rect1 = textsurface1.get_rect(center=(display_x/2, display_y/2+100))
         if text_string:
             textsurface2 = myfont.render(text_string, False, (0, 0, 0))
             text_rect2 = textsurface2.get_rect(center=(display_x/2, display_y/2-100))
-        window.fill((100, 100, 150))
+        window.fill((150, 100, 150))
         window.blit(textsurface1, text_rect1)
         if text_string:
             window.blit(textsurface2, text_rect2)
@@ -63,8 +63,9 @@ def render_waiting_screen(text_string=None, time_black = 0.):
                 elif event.key == K_SPACE:
                     press_string1 = ""
                     textsurface_new = myfont.render(press_string1, False, (0, 0, 0))
-                    window.fill((0, 0, 0))
-                    window.blit(textsurface_new, text_rect1)
+                    window1 = pygame.display.set_mode((display_x, display_y), pygame.NOFRAME, 32)
+                    window1.fill((0, 0, 0))
+                    window1.blit(textsurface_new, text_rect1)
                     pygame.quit()
                     busy = False
                     return False

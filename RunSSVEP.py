@@ -36,8 +36,9 @@ if __name__ == "__main__":
             flickfreq = fps_pick/divrs_sel
             print(f"The current flickering frequency is {flickfreq}Hz")
 
-            render_waiting_screen(text_string=None, time_black=0)
+
             flick_dur = input("Enter duration of flicker stimulus in seconds: ")
+            render_waiting_screen(text_string=None, time_black=0)
             Flick(float(flickfreq)).flicker(flick_dur)
 
         elif len(args) == 3:  #Flickering frequency specified.
@@ -53,6 +54,8 @@ if __name__ == "__main__":
             Flick(float(args[2])).flicker(flick_dur)
         elif len(args) == 4:  #Both flickering frequency and duration specified.
 
+            print(f"The flickering frequency is {args[2]}Hz and the flicker stimulus duration is {args[3]}secs ")
+            render_waiting_screen(text_string=None, time_black=0)
             Flick(float(args[2])).flicker(args[3])
     elif str(args[1]) == "classify":
         start_live_classifier()
