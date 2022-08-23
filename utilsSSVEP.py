@@ -35,6 +35,7 @@ def render_waiting_screen(text_string=None, time_black = 0.):
         window.fill((0., 0., 0.))
         timer_event = USEREVENT + 1
         pygame.time.set_timer(timer_event, int(time_black)*1000)
+        myfont = pygame.font.SysFont("arial", 50)
     else:
         myfont = pygame.font.SysFont("arial", 50)
         press_string = "Please press the Space Bar to continue..."
@@ -91,15 +92,17 @@ def begin_experiment_1(freq, trials=5):
     render_waiting_screen("Welcome to this experiment")
     render_waiting_screen("The experiment will start now... there will be breaks between the flickering tiles!")
     recorder = RecordData(250., 20.)
-    render_waiting_screen(text_string=None, time_black=0.1)
+    render_waiting_screen(text_string=None, time_black=0.0)
     recorder.start_recording()
 
     for i in range(0, int(trials)):
 
         recorder.add_trial(int(freq))
         Flick(float(freq)).flicker(15.)
-        recorder.add_trial(0.)
-        render_waiting_screen(text_string=None, time_black=1.)
+        tdata = recorder.add_trial(0.)
+
+        recorder.freqdetect(tdata)
+        render_waiting_screen(text_string=None, time_black=0.0)
 
     filename = "REC/%s_freq_%s.mat" % (time_str(), freq)
     recorder.stop_recording_and_dump(filename)

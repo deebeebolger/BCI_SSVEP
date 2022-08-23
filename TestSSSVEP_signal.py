@@ -13,6 +13,7 @@ dataIn = sio.loadmat("/Users/bolger/PycharmProjects/BCI_SSVEP/REC/session_freq5_
 
 D = dataIn["X"]
 t = dataIn["time_vect"]
+t = t[0, 0:5000]
 tdata = dataIn["trial_data"]
 tdata1 = np.squeeze(tdata)
 tdata1 = tdata1.T

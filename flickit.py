@@ -13,7 +13,7 @@ import coloredcircle
 pygame.init()
 pygame.font.init()
 
-VERBOSE = True
+VERBOSE = False
 
 
 class Flick:
@@ -127,4 +127,3 @@ class Flick:
             #period = 1. / self._freq_controller(clock, _freq_array)
             #period = 1. / self._freq_controller(clock, _freq_array)
 
-        pygame.draw.circle()

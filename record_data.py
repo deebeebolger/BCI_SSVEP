@@ -32,6 +32,13 @@ import pylsl               # NOQA
 import time                # NOQA
 import numpy as np
 
+import matplotlib.pyplot as plt
+from mne.time_frequency import psd_welch
+from scipy import signal
+from sklearn.cross_decomposition import CCA
+import matplotlib.pyplot as plt
+from mne.time_frequency import psd_welch
+
 
 def time_str():
     return time.strftime("%H_%M_%d_%m_%Y", time.gmtime())
@@ -156,11 +163,10 @@ class RecordData():
             N = 250 * 15  # Define the 15second interval
             curr_data = self.X_noninc
             print("Trial length in samples is:" + str(len(curr_data[-N:])))
-            #self.trial_data.append(curr_data[-N:])  # Pass only the 15seconds to the frequency analysis.
+            self.trial_data.append(curr_data[-N:])  # Pass only the 15seconds to the frequency analysis.
             to_add = curr_data[-N:]
             print("current trial data dimension: " + str(np.shape(curr_data[-N:])))
             print("Pause Label: " + str(label))
-
 
         self.trial_time_stamps.append(pylsl.local_clock())  # Get the time at the start of the trial.
         if label == 0:
@@ -170,6 +176,60 @@ class RecordData():
 
         if label > 0:
             print("Trial Label: " + str(label))
+
+        return to_add
+
+    def freqdetect(self, dataIn):
+
+        t = self.time_vect
+        N = 250 * 15
+        t = t[0:N]
+        D = np.transpose(dataIn)
+        Dcurr_len = np.shape(D)
+        print(f"The length of Dcurr is {Dcurr_len} ")
+        print(f"The size of t variable is {np.shape(t)}")
+        print(f"{t}")
+
+
+        fs = 250
+
+        lowcut = 2
+        highcut = 40
+        order = 6
+
+        nyq = 0.5 * fs
+        low = lowcut / nyq
+        high = highcut / nyq
+        b, a = signal.butter(order, [low, high], btype='band')
+        datafilt = signal.filtfilt(b, a, D)
+        print(f"Size of datafilt is {np.shape(datafilt)}")
+
+        ## Create the reference signals for CCA Enhancement
+        freqsoi = [10, 12, 15, 17, 20]  # the target frrequencies for reference signals
+        n_harmonics = 1  # Number of harmonics to take into account
+        cca = CCA(max_iter=1000, n_components=1)
+
+        t = np.arange(0, 3750, 1)*(1/250)
+        targets = {}
+        # t_vec = np.linspace(0, 15, 29460)
+        for freq in freqsoi:
+            sig_sin, sig_cos = [], []
+            for harmonics in range(n_harmonics):
+                sig_sin.append(np.sin(2 * np.pi * 1 * freq * np.squeeze(t)))
+                sig_cos.append(np.cos(2 * np.pi * 1 * freq * np.squeeze(t)))
+            print(f"the shape of sig_sin is {np.shape(sig_sin)}\n ")
+            print(f"the shape of sig_cos is {np.shape(sig_cos)}\n ")
+            x = np.array(sig_sin + sig_cos)
+            targets[freq] = np.array(sig_sin + sig_cos).T
+            print(f"the size of targets is {targets}")
+
+        scores = []
+        for freqIdx in range(0, np.shape(freqsoi)[0]):
+            #X_out = cca.fit(datafilt.T, targets[freqsoi[freqIdx]]).transform(datafilt.T)
+            sig_c, t_c = cca.fit_transform(datafilt.T, targets[freqsoi[freqIdx]])
+            scores.append(np.corrcoef(sig_c.T, t_c.T)[0, 1])
+
+        print("Most highly correlated to: " + str(freqsoi[np.argmax(scores)]) + "Hz")
 
 
     def start_recording(self):

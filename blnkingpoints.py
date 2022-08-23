@@ -10,34 +10,35 @@ import time
 from math import sin, pi
 import sys
 
-NUM_OF_THREAD = 6
+NUM_OF_THREAD = 2
 b = threading.Barrier(NUM_OF_THREAD)
-
 
 def blinking_block(points, frequency):
     COUNT = 1
     CLOCK = pygame.time.Clock()
     ''' FrameRate '''
-    FrameRate = 144
+    FrameRate = 60
 
     b.wait()  # Synchronize the start of each thread
     while True:  # execution block
         CLOCK.tick(FrameRate)
         tmp = sin(2 * pi * frequency * (COUNT / FrameRate))
         color = 255 * (tmp > 0)
+        print(f"Color is {color}\n")
         #block = pygame.draw.polygon(win, (color, color, color), points, 0)
-        block = pygame.draw.circle(win, (color, color, color), points,50)
+        block = pygame.draw.circle(win, (0, color, 0), points,200)
         pygame.display.update(block)  # can't update in main thread which will introduce delay in different block
         COUNT += 1
+        print(f"Count is: {COUNT}\n")
         if COUNT == FrameRate:
             COUNT = 0
-        # print(CLOCK.get_time()) #check the time between each frame (144HZ=7ms; 60HZ=16.67ms)
+        print(CLOCK.get_time()) #check the time between each frame (144HZ=7ms; 60HZ=16.67ms)
 
 
 if __name__ == '__main__':
     pygame.init()
     pygame.TIMER_RESOLUTION = 1  # set time resolutions
-    win = pygame.display.set_mode((1280, 640))
+    win = pygame.display.set_mode((1800, 1000))
 
     # background canvas
     bg = pygame.Surface(win.get_size())
@@ -49,22 +50,16 @@ if __name__ == '__main__':
     pygame.display.set_caption("Blinking")
 
     ''' frequency '''
-    frequency = [8, 9, 10, 11, 12, 13]  # frequency bank
+    #frequency = [8, 9, 10, 11, 12, 13]  # frequency bank
+    frequency = [12, 8]
     ''' POINTS '''
-    # POINTS = [[(1175, 0), (1070, 210), (1280, 210)],  # takeoff
-    #           [(1175, 640), (1070, 430), (1280, 430)],  # land
-    #           [(425, 0), (530, 210), (320, 210)],  # forward
-    #           [(425, 640), (530, 430), (320, 430)],  # backward
-    #           [(0, 320), (210, 425), (210, 215)],  # left
-    #           [(850, 320), (640, 425), (640, 215)]]  # right
-
-    POINTS = [[200, 200], [200, 400], [800, 400], [400, 1000], [1150, 400], [600, 400]]
+    POINTS = [[300, 400], [1400, 400]]
 
 
     duration = 10  # in seconds
 
     threads = []
-    for i in range(6):
+    for i in range(len(POINTS)):
         threads.append(threading.Thread(target=blinking_block, args=(POINTS[i], frequency[i])))
         threads[i].setDaemon(True)
         threads[i].start()
@@ -78,5 +73,8 @@ if __name__ == '__main__':
                 RUN = False
                 pygame.quit()
             elif event.type == timer_event:
-                RUN = False  
-        pygame.time.delay(100)
+                RUN = False
+                pygame.quit()
+        pygame.time.delay(1)
+
+exit()
