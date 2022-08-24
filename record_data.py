@@ -220,6 +220,12 @@ class RecordData():
 
     def freqdetect(self, dataIn):
 
+        """
+        Method to calculate the SSVEP using standard CCA.
+        :param dataIn:
+        :return:
+        """
+
         D = np.transpose(dataIn)
         Dcurr_len = np.shape(D)
         fs = 250
@@ -271,10 +277,15 @@ class RecordData():
 
     def freqdetect_fbcca(self, dataIn):
 
+        """
+        Detection of SSVEPs using filter-bank canonical correlation analysis (fbcca).
+        :param dataIn: current trial data for all n channels
+        It prints out the frequency that most closely matches the stimulation frequency according to fbcca analysis.
+        If the maximum  correlation value is too low, it will not give a result
+        """
         numfbs = 5  # The number of filterbanks
         n_harms = 2  # Number of harmonics
         fs = 250  # Sampling frequency
-
 
         freqlist = np.arange(5,21,1)
         num_samps, num_chans = np.shape(dataIn)      # The imported data has shape time-points X channel
@@ -311,7 +322,6 @@ class RecordData():
                  res[ifb, iclass] = temp_res
 
         print(f"size of res is {np.shape(res)}")
-
 
         # # Calculate the weighted sum of r from all the different filter banks results
         sum_r = np.dot(fb_coef, res)

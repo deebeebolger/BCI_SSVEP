@@ -57,7 +57,5 @@ if __name__ == "__main__":
             print(f"The flickering frequency is {args[2]}Hz and the flicker stimulus duration is {args[3]}secs ")
             render_waiting_screen(text_string=None, time_black=0)
             Flick(float(args[2])).flicker(args[3])
-    elif str(args[1]) == "classify":
-        start_live_classifier()
     else:
         print("Please specifiy exp1 or exp2 in the first argument!")
