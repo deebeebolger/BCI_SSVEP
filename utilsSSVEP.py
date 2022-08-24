@@ -100,8 +100,7 @@ def begin_experiment_1(freq, trials=5):
         recorder.add_trial(int(freq))
         Flick(float(freq)).flicker(15.)
         tdata = recorder.add_trial(0.)
-
-        recorder.freqdetect(tdata)
+        recorder.freqdetect_fbcca(tdata)    # Call of RecordData class freqdete_fbcca to apply filter-bank CCA.
         render_waiting_screen(text_string=None, time_black=0.0)
 
     filename = "REC/%s_freq_%s.mat" % (time_str(), freq)

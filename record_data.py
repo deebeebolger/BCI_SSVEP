@@ -1,44 +1,19 @@
+
 import os
-
-VERBOSE = False
-#
-# if os.name == "nt":
-#     # DIRTY workaround from stackoverflow
-#     # when using scipy, a keyboard interrup will kill python
-#     # so nothing after catching the keyboard interrupt will
-#     # be executed
-#
-#     import imp
-#     import ctypes
-#     import thread
-#     import win32api
-#
-#     basepath = imp.find_module('numpy')[1]
-#     ctypes.CDLL(os.path.join(basepath, 'core', 'libmmd.dll'))
-#     ctypes.CDLL(os.path.join(basepath, 'core', 'libifcoremd.dll'))
-#
-#     def handler(dwCtrlType, hook_sigint=thread.interrupt_main):
-#         if dwCtrlType == 0:
-#             hook_sigint()
-#             return 1
-#         return 0
-#
-#     win32api.SetConsoleCtrlHandler(handler, 1)
-
-
-import threading           # NOQA
-import scipy.io as sio     # NOQA
-import pylsl               # NOQA
-import time                # NOQA
+import threading
+import scipy
+import scipy.io as sio
+import pylsl
+import time
 import numpy as np
+import warnings
 
-import matplotlib.pyplot as plt
-from mne.time_frequency import psd_welch
 from scipy import signal
+from scipy.stats import pearsonr
 from sklearn.cross_decomposition import CCA
 import matplotlib.pyplot as plt
-from mne.time_frequency import psd_welch
 
+VERBOSE = False
 
 def time_str():
     return time.strftime("%H_%M_%d_%m_%Y", time.gmtime())
@@ -104,6 +79,70 @@ def record(channel_data=[], time_stamps=[], KillSwitch=None, time_vect=[], data_
                 break
     if KillSwitch.terminate:
         return False
+
+def cca_reference(list_freqs, fs, num_smpls, num_harms):
+
+    num_freqs = len(list_freqs)
+    tidx = np.arange(1, num_smpls + 1) / fs  # time index
+
+    y_ref = np.zeros((num_freqs, 2 * num_harms, num_smpls))
+    for freq_i in range(num_freqs):
+        tmp = []
+        for harm_i in range(1, num_harms + 1):
+            stim_freq = list_freqs[freq_i]  # in HZ
+            # Sin and Cos
+            tmp.extend([np.sin(2 * np.pi * tidx * harm_i * stim_freq),
+                        np.cos(2 * np.pi * tidx * harm_i * stim_freq)])
+        y_ref[freq_i] = tmp  # 2*num_harms because include both sin and cos
+
+    return y_ref
+
+
+def filterbank(eeg, fs, idx_fb):
+
+    """
+        Adapted from https://github.com/eugeneALU/CECNL_RealTimeBCI/blob/master/filterbank.py
+        Created on Fri Nov 1 2019
+        Author eugeneALU
+    """
+    if idx_fb == None:
+        warnings.warn('stats:filterbank:MissingInput ' \
+                      + 'Missing filter index. Default value (idx_fb = 0) will be used.')
+        idx_fb = 0
+    elif (idx_fb < 0 or 9 < idx_fb):
+        raise ValueError('stats:filterbank:InvalidInput ' \
+                         + 'The number of sub-bands must be 0 <= idx_fb <= 9.')
+
+    if (len(eeg.shape) == 2):
+        num_chans = eeg.shape[0]
+        num_trials = 1
+    else:
+        num_chans, _, num_trials = eeg.shape
+
+    # Nyquist Frequency = Fs/2N
+    Nq = fs / 2
+
+    passband = [6, 14, 22, 30, 38, 46, 54, 62, 70, 78]
+    stopband = [4, 10, 16, 24, 32, 40, 48, 56, 64, 72]
+    Wp = [passband[idx_fb] / Nq, 90 / Nq]
+    Ws = [stopband[idx_fb] / Nq, 100 / Nq]
+    [N, Wn] = signal.cheb1ord(Wp, Ws, 3, 40)  # band pass filter StopBand=[Ws(1)~Ws(2)] PassBand=[Wp(1)~Wp(2)]
+    [B, A] =  signal.cheby1(N, 0.5, Wn, 'bandpass')  # Wn passband edge frequency
+
+    y = np.zeros(eeg.shape)
+    if (num_trials == 1):
+        for ch_i in range(num_chans):
+            # apply filter, zero phass filtering by applying a linear filter twice, once forward and once backwards.
+            # to match matlab result we need to change padding length
+            y[ch_i, :] = signal.filtfilt(B, A, eeg[ch_i, :], padtype='odd', padlen=3 * (max(len(B), len(A)) - 1))
+
+    else:
+        for trial_i in range(num_trials):
+            for ch_i in range(num_chans):
+                y[ch_i, :, trial_i] = signal.filtfilt(B, A, eeg[ch_i, :, trial_i], padtype='odd',
+                                                            padlen=3 * (max(len(B), len(A)) - 1))
+
+    return y
 
 
 class RecordData():
@@ -181,17 +220,15 @@ class RecordData():
 
     def freqdetect(self, dataIn):
 
-        t = self.time_vect
-        N = 250 * 15
-        t = t[0:N]
         D = np.transpose(dataIn)
         Dcurr_len = np.shape(D)
+        fs = 250
+        N = fs * 15
+        t = np.arange(0, 3750, 1) * (1 / fs)
+
         print(f"The length of Dcurr is {Dcurr_len} ")
         print(f"The size of t variable is {np.shape(t)}")
         print(f"{t}")
-
-
-        fs = 250
 
         lowcut = 2
         highcut = 40
@@ -204,14 +241,15 @@ class RecordData():
         datafilt = signal.filtfilt(b, a, D)
         print(f"Size of datafilt is {np.shape(datafilt)}")
 
-        ## Create the reference signals for CCA Enhancement
-        freqsoi = [10, 12, 15, 17, 20]  # the target frrequencies for reference signals
-        n_harmonics = 1  # Number of harmonics to take into account
-        cca = CCA(max_iter=1000, n_components=1)
+        # Instantiate the CCA object.
+        cca = CCA(max_iter=1000, n_components=2)
 
-        t = np.arange(0, 3750, 1)*(1/250)
+        # Generate the sine-cosine based reference signals. Here we define 1 harmonic component
+        ## Initial the frequency of the reference signals
+        freqsoi = [8, 10, 12, 15, 17, 20]  # the target frrequencies for reference signals
+        n_harmonics = 1  # Number of harmonics to take into account
+
         targets = {}
-        # t_vec = np.linspace(0, 15, 29460)
         for freq in freqsoi:
             sig_sin, sig_cos = [], []
             for harmonics in range(n_harmonics):
@@ -230,6 +268,63 @@ class RecordData():
             scores.append(np.corrcoef(sig_c.T, t_c.T)[0, 1])
 
         print("Most highly correlated to: " + str(freqsoi[np.argmax(scores)]) + "Hz")
+
+    def freqdetect_fbcca(self, dataIn):
+
+        numfbs = 5  # The number of filterbanks
+        n_harms = 2  # Number of harmonics
+        fs = 250  # Sampling frequency
+
+
+        freqlist = np.arange(5,21,1)
+        num_samps, num_chans = np.shape(dataIn)      # The imported data has shape time-points X channel
+        num_targets = len(freqlist)
+        print(f"the dimension of input data is {np.shape(dataIn)}\n")
+        dataIn = np.array(dataIn)
+        print(print(f"the dimension of input data is {dataIn.shape}\n"))
+
+        fb_coef = np.power(np.arange(1, numfbs+1),(-1.25)) + 0.25    # Filterbank coefficients
+
+        # Generate the reference sine-cosine based signals
+        sigref = cca_reference(freqlist, fs, num_samps, n_harms)  # Call of function cca_reference
+
+        # Instantiate CCA object
+        cca = CCA(max_iter=1000, n_components=2)
+
+        # # Initialize a results matrix
+        # result matrix
+        res = np.zeros(( numfbs, num_targets))
+
+        for ifb in range(numfbs):
+            testd = filterbank(dataIn.T, fs, ifb)
+
+            for iclass in range(num_targets):
+                 dataref = np.squeeze(sigref[iclass, :, :])
+                 print(print(f"the dimension of input dataref is {dataref.shape}\n"))
+                 test_C, ref_C = cca.fit_transform(testd.T, dataref.T)
+                 print(f"The type of test_c is {type(test_C)} and type of ref_C is {type(ref_C)}\n")
+                 print(f"The size of test_c is {test_C.shape} and type of ref_C is {ref_C.shape}\n")
+                 temp_res, _ = pearsonr(test_C.flatten(), ref_C.flatten())
+                 print(type(temp_res))
+                 if temp_res == np.nan:
+                    temp_res = 0
+                 res[ifb, iclass] = temp_res
+
+        print(f"size of res is {np.shape(res)}")
+
+
+        # # Calculate the weighted sum of r from all the different filter banks results
+        sum_r = np.dot(fb_coef, res)
+        print(f"The output weighted sum of correlations all filterbanks is {sum_r}\n")
+
+        # Get the maximum from the target as the final predict. It returns the index.
+        finalres_i = np.argmax(sum_r)
+        # '''Set the threshold correlation'''
+        Threshold = 2.1
+        if abs(sum_r[finalres_i])< Threshold:
+             print(f"The correlation of {sum_r[finalres_i]} is too low. \n")
+        else:
+             print(f"Frequency {freqlist[finalres_i]}Hz is most likely with a correlation of {sum_r[finalres_i]}\n")
 
 
     def start_recording(self):
