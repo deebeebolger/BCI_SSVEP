@@ -294,7 +294,10 @@ class RecordData():
         dataIn = np.array(dataIn)
         print(print(f"the dimension of input data is {dataIn.shape}\n"))
 
-        fb_coef = np.power(np.arange(1, numfbs+1),(-1.25)) + 0.25    # Filterbank coefficients
+        # Define the filterbank coefficients to weight the sub-band components.
+        # Based on finding that SSVEP SNR decreases as a function of increasing response frequency.
+        # Constants -1.25 and 0.25 maximize classification performance.
+        fb_coef = np.power(np.arange(1, numfbs+1),(-1.25)) + 0.25
 
         # Generate the reference sine-cosine based signals
         sigref = cca_reference(freqlist, fs, num_samps, n_harms)  # Call of function cca_reference
@@ -333,6 +336,7 @@ class RecordData():
         Threshold = 2.1
         if abs(sum_r[finalres_i])< Threshold:
              print(f"The correlation of {sum_r[finalres_i]} is too low. \n")
+             print(f"Frequency {freqlist[finalres_i]}Hz is most likely with a correlation of {sum_r[finalres_i]}\n")
         else:
              print(f"Frequency {freqlist[finalres_i]}Hz is most likely with a correlation of {sum_r[finalres_i]}\n")
 
