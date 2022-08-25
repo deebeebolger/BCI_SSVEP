@@ -329,6 +329,8 @@ class RecordData():
         # # Calculate the weighted sum of r from all the different filter banks results
         sum_r = np.dot(fb_coef, res)
         print(f"The output weighted sum of correlations all filterbanks is {sum_r}\n")
+        plt.bar(freqlist, sum_r, color='blue')
+        plt.show()
 
         # Get the maximum from the target as the final predict. It returns the index.
         finalres_i = np.argmax(sum_r)
