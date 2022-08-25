@@ -218,7 +218,7 @@ class RecordData():
 
         return to_add
 
-    def freqdetect(self, dataIn):
+    def freqdetect(self, dataIn, forig):
 
         """
         Method to calculate the SSVEP using standard CCA.
@@ -275,7 +275,7 @@ class RecordData():
 
         print("Most highly correlated to: " + str(freqsoi[np.argmax(scores)]) + "Hz")
 
-    def freqdetect_fbcca(self, dataIn):
+    def freqdetect_fbcca(self, dataIn, forig):
 
         """
         Detection of SSVEPs using filter-bank canonical correlation analysis (fbcca).
@@ -329,18 +329,22 @@ class RecordData():
         # # Calculate the weighted sum of r from all the different filter banks results
         sum_r = np.dot(fb_coef, res)
         print(f"The output weighted sum of correlations all filterbanks is {sum_r}\n")
-        plt.bar(freqlist, sum_r, color='blue')
-        plt.show()
+
 
         # Get the maximum from the target as the final predict. It returns the index.
         finalres_i = np.argmax(sum_r)
         # '''Set the threshold correlation'''
         Threshold = 2.1
         if abs(sum_r[finalres_i])< Threshold:
+             print(f"Original stimulus frequency is: {forig}\n.")
              print(f"The correlation of {sum_r[finalres_i]} is too low. \n")
              print(f"Frequency {freqlist[finalres_i]}Hz is most likely with a correlation of {sum_r[finalres_i]}\n")
         else:
+             print(f"Original stimulus frequency is: {forig}\n.")
              print(f"Frequency {freqlist[finalres_i]}Hz is most likely with a correlation of {sum_r[finalres_i]}\n")
+
+        plt.bar(freqlist, sum_r, color='blue')
+        plt.show()
 
 
     def start_recording(self):
