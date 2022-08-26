@@ -36,6 +36,8 @@ def render_waiting_screen(text_string=None, time_black = 0.):
         timer_event = USEREVENT + 1
         pygame.time.set_timer(timer_event, int(time_black)*1000)
         myfont = pygame.font.SysFont("arial", 50)
+
+
     else:
         myfont = pygame.font.SysFont("arial", 50)
         press_string = "Please press the Space Bar to continue..."

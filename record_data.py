@@ -144,6 +144,41 @@ def filterbank(eeg, fs, idx_fb):
 
     return y
 
+def plotFreqDetect(refreq, rho, Edata, srate):
+
+
+    # Filter the current trial EEG data before plotting spectrum.
+    lowcut = 2
+    highcut = 30
+    order = 8
+    nyq = 0.5 * srate
+    low = lowcut / nyq
+    high = highcut / nyq
+    b, a = signal.butter(order, [low, high], btype='band')
+    datafilt = signal.filtfilt(b, a, Edata.T)
+    print(f"Size of datafilt is {np.shape(datafilt)}")
+
+    datafilt_mean = np.mean(Edata, 1)
+    fig, axs = plt.subplots(1, 2)
+
+    # Plot bar graph of weighted sum of squares of correlation values.
+    axs[0].set_title("Weighted sum of squares (WSS) of correlations ")
+    axs[0].bar(refreq, rho, color='blue')
+    axs[0].set_ylabel("WSS of correlations")
+    axs[0].set_xlabel("Reference frequency (Hz)")
+
+    # Plot the log magnitude spectrum of the input data.
+    # Calculate the welch estimate
+    Fxx, Pxx = scipy.signal.welch(datafilt_mean, fs=srate, window='hanning')
+    idx = np.argmin(np.abs(Fxx - 30))
+    axs[1].set_title("PSD (Welch method) of current-trial EEG data")
+    axs[1].plot(Fxx[0:idx], 10*np.log(Pxx[0:idx]))
+    axs[1].set_xlabel("Frequency (Hz")
+    axs[1].set_ylabel("Magnitude (PSD)")
+
+    fig.tight_layout()
+    plt.show()
+
 
 class RecordData():
     def __init__(self, Fs, age, gender="male", record_func=record):
@@ -287,7 +322,7 @@ class RecordData():
         n_harms = 2  # Number of harmonics
         fs = 250  # Sampling frequency
 
-        freqlist = np.arange(5,21,1)
+        freqlist = np.arange(8,24,1)
         num_samps, num_chans = np.shape(dataIn)      # The imported data has shape time-points X channel
         num_targets = len(freqlist)
         print(f"the dimension of input data is {np.shape(dataIn)}\n")
@@ -343,8 +378,8 @@ class RecordData():
              print(f"Original stimulus frequency is: {forig}\n.")
              print(f"Frequency {freqlist[finalres_i]}Hz is most likely with a correlation of {sum_r[finalres_i]}\n")
 
-        plt.bar(freqlist, sum_r, color='blue')
-        plt.show()
+        plotFreqDetect(freqlist, sum_r, dataIn, fs)   # Call of function to plot the frequency spectrum and fbCCA results
+
 
 
     def start_recording(self):
