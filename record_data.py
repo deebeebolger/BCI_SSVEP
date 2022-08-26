@@ -171,7 +171,7 @@ def plotFreqDetect(refreq, rho, Edata, srate):
     # Calculate the welch estimate
     Fxx, Pxx = scipy.signal.welch(datafilt_mean, fs=srate, window='hanning')
     idx = np.argmin(np.abs(Fxx - 30))
-    axs[1].set_title("PSD (Welch method) of current-trial EEG data")
+    axs[1].set_title("PSD (Welch) of current-trial EEG data (mean of channels)")
     axs[1].plot(Fxx[0:idx], 10*np.log(Pxx[0:idx]))
     axs[1].set_xlabel("Frequency (Hz")
     axs[1].set_ylabel("Magnitude (PSD)")
