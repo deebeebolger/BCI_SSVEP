@@ -18,7 +18,7 @@ def time_str():
     return time.strftime("%H_%M_%d_%m_%Y", time.gmtime())
 
 
-def render_waiting_screen(text_string=None, time_black = 0.):
+def render_waiting_screen(text_string=None, time_black=0.0):
     pygame.init()
     # pygame.font.init()
     h_str = str(get_monitors()[0])
@@ -35,9 +35,7 @@ def render_waiting_screen(text_string=None, time_black = 0.):
         window.fill((0., 0., 0.))
         timer_event = USEREVENT + 1
         pygame.time.set_timer(timer_event, int(time_black)*1000)
-        myfont = pygame.font.SysFont("arial", 50)
-
-
+        myfont = pygame.font.SysFont("arial", 40)
     else:
         myfont = pygame.font.SysFont("arial", 50)
         press_string = "Please press the Space Bar to continue..."
@@ -81,6 +79,7 @@ def render_waiting_screen(text_string=None, time_black = 0.):
                 if event.type == timer_event:
                     pygame.quit()
 
+
                     return False
             if busy == False:
                 break
@@ -91,10 +90,11 @@ def begin_experiment_1(freq, trials=5):
     if not os.path.isdir("REC"):
         os.mkdir("REC")
 
-    render_waiting_screen("Welcome to this experiment")
-    render_waiting_screen("The experiment will start now... there will be breaks between the flickering tiles!")
-    recorder = RecordData(250., 20.)
-    render_waiting_screen(text_string=None, time_black=0.0)
+    render_waiting_screen("Welcome to this SSVEP experiment")
+    render_waiting_screen("The experiment will start now...There will be 5 trials of 15seconds.")
+    render_waiting_screen("A 2second long black screen will appear between each trial.")
+    recorder = RecordData(250., 20.)           # First arg = Fs, second arg = participant age.
+    render_waiting_screen(text_string=None, time_black=2.0)
     recorder.start_recording()
 
     for i in range(0, int(trials)):
@@ -103,7 +103,7 @@ def begin_experiment_1(freq, trials=5):
         Flick(float(freq)).flicker(15.)
         tdata = recorder.add_trial(0.)
         recorder.freqdetect_fbcca(tdata, freq)    # Call of RecordData class freqdete_fbcca to apply filter-bank CCA.
-        render_waiting_screen(text_string=None, time_black=0.0)
+        render_waiting_screen(text_string=None, time_black=2.0)
 
     filename = "REC/%s_freq_%s.mat" % (time_str(), freq)
     recorder.stop_recording_and_dump(filename)

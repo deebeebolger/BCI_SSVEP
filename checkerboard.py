@@ -1,6 +1,6 @@
 from pygame import Surface, Rect
 
-def create(flag,a=5,b=5,w=500,h=400):
+def create(flag,a=5,b=5,w=600,h=600):
     k = w/a
     l = h/b
     surf = Surface((w, h))

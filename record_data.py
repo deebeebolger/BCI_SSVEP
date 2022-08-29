@@ -7,6 +7,7 @@ import pylsl
 import time
 import numpy as np
 import warnings
+import pygame as pygame
 
 from scipy import signal
 from scipy.stats import pearsonr
@@ -159,7 +160,7 @@ def plotFreqDetect(refreq, rho, Edata, srate):
     print(f"Size of datafilt is {np.shape(datafilt)}")
 
     datafilt_mean = np.mean(Edata, 1)
-    fig, axs = plt.subplots(1, 2)
+    fig, axs = plt.subplots(1, 2, figsize=(12,8))
 
     # Plot bar graph of weighted sum of squares of correlation values.
     axs[0].set_title("Weighted sum of squares (WSS) of correlations ")
@@ -178,6 +179,16 @@ def plotFreqDetect(refreq, rho, Edata, srate):
 
     fig.tight_layout()
     plt.show()
+
+def result_screen(forig, fresult):
+    screen_result = pygame.display.set_mode((1200, 1000))
+    # if forig == fresult:
+    #     my_image = pygame.image.load('my_image.png')
+    # else:
+    #     my_image = pygame.image.load('my_image.png')
+
+
+
 
 
 class RecordData():
@@ -379,12 +390,18 @@ class RecordData():
              print(f"Frequency {freqlist[finalres_i]}Hz is most likely with a correlation of {sum_r[finalres_i]}\n")
 
         plotFreqDetect(freqlist, sum_r, dataIn, fs)   # Call of function to plot the frequency spectrum and fbCCA results
+        result_screen(forig, freqlist[finalres_i])    # Call of function to display result screen.
+
+
+
+
+
 
 
 
     def start_recording(self):
         self.recording_thread.start()
-        time.sleep(16)
+        time.sleep(5)
         if len(self.X) == 0:
             raise NoRecordingDataError()
 
