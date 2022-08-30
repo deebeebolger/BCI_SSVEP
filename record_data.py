@@ -7,13 +7,15 @@ import pylsl
 import time
 import numpy as np
 import warnings
-import pygame as pygame
+import pygame
+from pygame.locals import *
 
 from scipy import signal
 from scipy.stats import pearsonr
 from sklearn.cross_decomposition import CCA
 import matplotlib.pyplot as plt
 
+pygame.init()
 VERBOSE = False
 
 def time_str():
@@ -145,10 +147,10 @@ def filterbank(eeg, fs, idx_fb):
 
     return y
 
-def plotFreqDetect(refreq, rho, Edata, srate):
-
+def plotFreqDetect(refreq, rho, Edata, srate, freq_found, freq_orig):
 
     # Filter the current trial EEG data before plotting spectrum.
+
     lowcut = 2
     highcut = 30
     order = 8
@@ -161,12 +163,19 @@ def plotFreqDetect(refreq, rho, Edata, srate):
 
     datafilt_mean = np.mean(Edata, 1)
     fig, axs = plt.subplots(1, 2, figsize=(12,8))
+    refreq_list = refreq.copy().tolist()
+    forig_indx = refreq_list.index(int(freq_orig))
+    ffound_indx = refreq_list.index(int(freq_found))
+    print(forig_indx)
+    print(ffound_indx)
 
     # Plot bar graph of weighted sum of squares of correlation values.
     axs[0].set_title("Weighted sum of squares (WSS) of correlations ")
     axs[0].bar(refreq, rho, color='blue')
     axs[0].set_ylabel("WSS of correlations")
     axs[0].set_xlabel("Reference frequency (Hz)")
+    axs[0].get_children()[forig_indx].set_color('r')
+    axs[0].get_children()[ffound_indx].set_color('g')
 
     # Plot the log magnitude spectrum of the input data.
     # Calculate the welch estimate
@@ -180,15 +189,23 @@ def plotFreqDetect(refreq, rho, Edata, srate):
     fig.tight_layout()
     plt.show()
 
-def result_screen(forig, fresult):
-    screen_result = pygame.display.set_mode((1200, 1000))
-    # if forig == fresult:
-    #     my_image = pygame.image.load('my_image.png')
-    # else:
-    #     my_image = pygame.image.load('my_image.png')
-
-
-
+# def result_screen(forig, fresult):
+#     pygame.init()
+#     screen_result = pygame.display.set_mode((1400, 1200))
+#     if forig == fresult:
+#          res_image = pygame.image.load(r'res/correct_image.png')
+#     else:
+#          res_image = pygame.image.load(r'res/incorrect_image.jpeg')
+#     timer_event1 = pygame.USEREVENT + 2
+#     pygame.time.set_timer(timer_event1, 4000)
+#     busy = True
+#     while busy:
+#         screen_result.blit(res_image, [300, 400])
+#         pygame.display.update()
+#         for event in pygame.event.get():
+#             if event.type == timer_event1:
+#                 pygame.quit()
+#                 busy = False
 
 
 class RecordData():
@@ -389,15 +406,8 @@ class RecordData():
              print(f"Original stimulus frequency is: {forig}\n.")
              print(f"Frequency {freqlist[finalres_i]}Hz is most likely with a correlation of {sum_r[finalres_i]}\n")
 
-        plotFreqDetect(freqlist, sum_r, dataIn, fs)   # Call of function to plot the frequency spectrum and fbCCA results
-        result_screen(forig, freqlist[finalres_i])    # Call of function to display result screen.
-
-
-
-
-
-
-
+        plotFreqDetect(freqlist, sum_r, dataIn, fs, freqlist[finalres_i], forig)   # Call of function to plot the frequency spectrum and fbCCA results
+        #result_screen(forig, freqlist[finalres_i])    # Call of function to display result screen.
 
     def start_recording(self):
         self.recording_thread.start()
