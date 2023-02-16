@@ -61,11 +61,14 @@ fps = int(clock.get_fps())**
 
 ## References
 
+
+Chen X, Wang Y, Gao S, Jung TP, Gao X. Filter bank canonical correlation analysis for implementing a high-speed SSVEP-based brain-computer interface. J Neural Eng. 2015 Aug;12(4):046008. doi: 10.1088/1741-2560/12/4/046008. Epub 2015 Jun 2. PMID: 26035476.
+
+Rabiul Islam M, Khademul Islam Molla M, Nakanishi M, Tanaka T. Unsupervised frequency-recognition method of SSVEPs using a filter bank implementation of binary subband CCA. J Neural Eng. 2017 Apr;14(2):026007. doi: 10.1088/1741-2552/aa5847. Epub 2017 Jan 10. PMID: 28071599.
+
 https://xribenesite.wordpress.com/2017/11/22/ssvep-bci-arduino-based-configurable-leds-hardware-design/
 
 https://xribenesite.wordpress.com/2017/11/24/ssvep-bci-protocol-design-and-offline-processing/
-
-Chen X, Wang Y, Gao S, Jung TP, Gao X. Filter bank canonical correlation analysis for implementing a high-speed SSVEP-based brain-computer interface. J Neural Eng. 2015 Aug;12(4):046008. doi: 10.1088/1741-2560/12/4/046008. Epub 2015 Jun 2. PMID: 26035476.
 
 https://github.com/HeosSacer/SSVEP-Brain-Computer-Interface
 
