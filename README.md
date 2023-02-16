@@ -3,7 +3,7 @@
 
 A very simple stand-alone implementation of an SSVEP protocol in the python language that is based on the acquisition of EEG data using the OpenBCI system. 
 EEG signals are directly transferred from the Cyton board of the OpenBCI system using the pyOpenBCI library. 
-The most recent version (January 2023) applies a **filter-bank Canonical Correlation Analysis** on each trial to carry out the frequency detection. 
+The most recent version (January 2023) applies a **filter-bank Canonical Correlation Analysis (filterbank CCA)** on each trial to carry out the frequency detection. 
 
 # Notes for using the suite of functions:
 
@@ -58,6 +58,23 @@ This is useful for testing the success rate of the script in detecting the equiv
 fps = int(clock.get_fps())**
 
 *A possible problem is that this code will not return a precise fps (e.g. 61Hz or 59Hz), so it may help to round to the nearest 10…this will need to be tested.* 
+
+## References
+
+https://xribenesite.wordpress.com/2017/11/22/ssvep-bci-arduino-based-configurable-leds-hardware-design/
+
+https://xribenesite.wordpress.com/2017/11/24/ssvep-bci-protocol-design-and-offline-processing/
+
+Chen X, Wang Y, Gao S, Jung TP, Gao X. Filter bank canonical correlation analysis for implementing a high-speed SSVEP-based brain-computer interface. J Neural Eng. 2015 Aug;12(4):046008. doi: 10.1088/1741-2560/12/4/046008. Epub 2015 Jun 2. PMID: 26035476.
+
+https://github.com/HeosSacer/SSVEP-Brain-Computer-Interface
+
+Other sources :
+https://github.com/aaravindravi/Brain-computer-interfaces
+
+
+
+
 
 
 
